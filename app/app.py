@@ -20,7 +20,7 @@ pd.set_option('display.max_colwidth', 1000)
 
 # WIDGETS
 st.sidebar.image(
-    image = 'https://variety.com/wp-content/uploads/2023/04/movie-theater-placeholder.jpg?w=1000'
+    image = 'https://variety.com/wp-content/uploads/2023/04/movie-theater-placeholder.jpg?w=500'
     # image = 'https://superfilmes.red/image/poster/330490/200486714.jpg'
 )
 
@@ -37,8 +37,11 @@ st.sidebar.button(
     key = 'atualizar'
 )
 
-if 'dataframe' not in st.session_state:
-    st.session_state['dataframe'] = []
+if 'dataframe_base' not in st.session_state:
+    st.session_state['dataframe_base'] = []
+
+if 'dataframe_filtro' not in st.session_state:
+    st.session_state['dataframe_filtro'] = []
 
 # BASE
 if st.session_state.atualizar:
@@ -63,11 +66,13 @@ if st.session_state.atualizar:
 
     df = pd.DataFrame(dados[0])
 
-    st.session_state['dataframe'].append(df.to_dict(orient='list'))
+    st.session_state['dataframe_base'].append(df.to_dict(orient='list'))
+
+    df = pd.DataFrame(st.session_state['dataframe_base'][-1])
     
     # FILTROS
     if st.session_state.categorias == 'series':
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3, col4, col5 = st.columns(5)
         
         col1.multiselect(
             label = 'Gênero',
@@ -89,8 +94,13 @@ if st.session_state.atualizar:
             options = df.episodios.sort_values().unique(),
             key = 'Episódios'
         )
+        col5.button(
+            label = 'Filtrar',
+            type = 'primary',
+            key = 'filtrar'
+        )
     else:
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3, col4, col5 = st.columns(5)
 
         col1.multiselect(
             label = 'Gênero',
@@ -112,8 +122,17 @@ if st.session_state.atualizar:
             options = df.legendas.sort_values().unique(),
             key = 'legendas'
         )
+        col5.button(
+            label = 'Filtrar',
+            type = 'primary',
+            key = 'filtrar'
+        )
 
-    # st.session_state['dataframe'].append(df.to_dict(orient='list'))
+    if st.session_state.filtrar:
+        st.session_state['dataframe_filtro'].append(df.loc[df.genero.isin(st.session_state.genero)].to_dict(orient='list'))
+        df = pd.DataFrame(st.session_state['dataframe_filtro'][-1])
+    else:
+        pass
 
     # df = st.session_state['dataframe'][-1]
 

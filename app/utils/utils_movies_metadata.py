@@ -37,7 +37,7 @@ class GetMovieMetadata:
 
             # NOTA FLOAT
             try:
-                nota_float = re.match(r'Nota:\s(\d.*)/', nota).group(1)
+                nota_float = float(re.match(r'Nota:\s(\d.*)/', nota).group(1))
             except:
                 nota_float = None
 
@@ -124,7 +124,7 @@ class GetMovieMetadata:
             metadata = {
                 'uuid': str(uuid),
                 'name': movie_name, 
-                'category': self._category,
+                'categoria': self._category,
                 'url': movie_url, 
                 'url_src': f'<a href="{movie_url}" target="_blank">{movie_name}</a>',
                 'logo': logo,

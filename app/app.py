@@ -5,43 +5,13 @@ import datetime, pytz
 import pandas as pd
 import streamlit as st 
 from IPython.display import display, HTML
+from utils.utils_streamlit import get_config, get_widgets, get_data, get_filters, apply_filters, get_final_dataframe
 
 # CONFIGS
-st.set_page_config(
-        page_title = "Filmes e Séries Disponíveis no Superfilmes",
-        layout = 'wide',
-        menu_items = {
-            'about': 'App simples, com objetivos educativos, para obter lista de filmes e séries disponíveis no site superfilmes. Criado por josenilton1878@gmail.com'
-        }
-
-    )
-
-pd.set_option('display.max_colwidth', 1000)
+get_config()
 
 # WIDGETS
-st.sidebar.image(
-    image = 'https://variety.com/wp-content/uploads/2023/04/movie-theater-placeholder.jpg?w=500'
-    # image = 'https://superfilmes.red/image/poster/330490/200486714.jpg'
-)
-
-st.sidebar.markdown('---')
-
-st.sidebar.selectbox(
-    label = 'Categoria',
-    options = ['series', 'filmes'],
-    key = 'categorias'
-)
-
-st.sidebar.button(
-    label = 'Atualizar',
-    key = 'atualizar'
-)
-
-if 'dataframe_base' not in st.session_state:
-    st.session_state['dataframe_base'] = []
-
-if 'dataframe_filtro' not in st.session_state:
-    st.session_state['dataframe_filtro'] = []
+get_widgets()
 
 # BASE
 if st.session_state.atualizar:
@@ -64,107 +34,26 @@ if st.session_state.atualizar:
     except:
         pass
 
-    df = pd.DataFrame(dados[0])
+    df_base = pd.DataFrame(dados[0])
+    # st.session_state['dataframe_base'].append(df_base.to_dict(orient = 'list'))
+    st.session_state['dataframe_base'].insert(0, df_base.to_dict(orient = 'list'))
 
-    st.session_state['dataframe_base'].append(df.to_dict(orient='list'))
+# FILTROS
+# try:
+if not st.session_state.atualizar:
+    pass
+else:
+    if st.session_state.atualizar or len(st.session_state['dataframe_base']) > 0:
 
-    df = pd.DataFrame(st.session_state['dataframe_base'][-1])
-    
-    # FILTROS
-    if st.session_state.categorias == 'series':
-        col1, col2, col3, col4, col5 = st.columns(5)
-        
-        col1.multiselect(
-            label = 'Gênero',
-            options = df.genero.unique(),
-            key = 'genero'
-        )
-        col2.multiselect(
-            label = 'Ano de Lançamento',
-            options = df.ano_raw.sort_values().unique(),
-            key = 'ano'
-        )
-        col3.multiselect(
-            label = 'Temporadas',
-            options = df.temporadas.sort_values().unique(),
-            key = 'temporadas'
-        )
-        col4.multiselect(
-            label = 'Episódios',
-            options = df.episodios.sort_values().unique(),
-            key = 'Episódios'
-        )
-        col5.button(
-            label = 'Filtrar',
-            type = 'primary',
-            key = 'filtrar'
-        )
+        df_base_st = pd.DataFrame(st.session_state['dataframe_base'][0])
+
+        get_filters(df_base_st)
+
+        df_filtered = apply_filters(df_base_st)
+
+        get_final_dataframe(df_base_st_filt = df_filtered)
+
     else:
-        col1, col2, col3, col4, col5 = st.columns(5)
-
-        col1.multiselect(
-            label = 'Gênero',
-            options = df.genero.unique(),
-            key = 'genero'
-        )
-        col2.multiselect(
-            label = 'Ano de Lançamento',
-            options = df.ano_raw.sort_values().unique(),
-            key = 'ano'
-        )
-        col3.multiselect(
-            label = 'Nota',
-            options = df.nota_float.sort_values().unique(),
-            key = 'nota_float'
-        )
-        col4.multiselect(
-            label = 'Legendas',
-            options = df.legendas.sort_values().unique(),
-            key = 'legendas'
-        )
-        col5.button(
-            label = 'Filtrar',
-            type = 'primary',
-            key = 'filtrar'
-        )
-
-    if st.session_state.filtrar:
-        st.session_state['dataframe_filtro'].append(df.loc[df.genero.isin(st.session_state.genero)].to_dict(orient='list'))
-        df = pd.DataFrame(st.session_state['dataframe_filtro'][-1])
-    else:
-        pass
-
-    # df = st.session_state['dataframe'][-1]
-
-    if st.session_state.categorias == 'series':
-        df_final = df[['image', 'name', 'url', 'description', 'genero', 'episodios', 'temporadas', 'ano_lancamento', 'data_extracao']].sort_values('ano_lancamento', ascending = False, ignore_index = True)
-    else:
-        df_final = df[['image', 'name', 'url', 'description', 'genero', 'nota_float', 'legendas', 'ano_lancamento', 'data_extracao']].sort_values('nota_float', ascending = False, ignore_index = True)
-    
-    st.data_editor(
-        data = df_final, 
-        use_container_width = True,
-        column_config = {
-            'url': st.column_config.LinkColumn(
-                label = 'url',
-                disabled = True,
-                display_text = 'Link'
-            ),
-            'image': st.column_config.ImageColumn(
-                label = 'logo',
-                width = 'medium'
-            )
-        },
-        height = 600,
-        hide_index = True
-    )
-
-    # st.write(
-    #     df_final.to_html(escape = False),
-    #     unsafe_allow_html=True
-    # )
-    # display(
-    #     HTML(
-    #         df_final.to_html(escape = False)
-    #     )
-    # )
+        st.error('Selecione uma categoria!')
+# except:
+#     st.write('Selecione uma categoria!')

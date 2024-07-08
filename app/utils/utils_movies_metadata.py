@@ -71,6 +71,14 @@ class GetMovieMetadata:
                 ano = 'Null'
                 duracao = 'Null'
 
+            # GENERO AJUSTADO
+            try:
+                genero = re.sub(r'\s*', '', genero).split(',')
+                genero.sort()
+                genero_final = ', '.join(genero)
+            except:
+                genero_final = 'Null'
+
             # Ano
             try:
                 ano_int = int(ano.strip().replace(r'\n', ''))
@@ -134,7 +142,7 @@ class GetMovieMetadata:
                 'nota': nota,
                 'nota_float': nota_float,
                 'description': description,
-                'genero': genero,
+                'genero': genero_final,
                 'elenco': elenco,
                 'direcao': direcao,
                 'ano_raw': ano,

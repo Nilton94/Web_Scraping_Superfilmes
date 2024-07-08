@@ -58,6 +58,14 @@ class GetSeriesMetadata:
                 direcao = 'Null'
                 ano = 'Null'
 
+            # GENERO AJUSTADO
+            try:
+                genero = re.sub(r'\s*', '', genero).split(',')
+                genero.sort()
+                genero_final = ', '.join(genero)
+            except:
+                genero_final = 'Null'
+
             # Ano
             try:
                 ano_int = int(ano.strip().replace(r'\n', ''))
@@ -124,7 +132,7 @@ class GetSeriesMetadata:
                 'logo_folder': logo_folder,
                 'image': image,
                 'description': description,
-                'genero': genero,
+                'genero': genero_final,
                 'elenco': elenco,
                 'direcao': direcao,
                 'ano_raw': ano,

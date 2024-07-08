@@ -4,6 +4,7 @@ import pandas as pd
 import datetime, pytz
 from utils.utils_movies_metadata import GetMovieMetadata
 from utils.utils_series_metadata import GetSeriesMetadata
+from streamlit_card import card
 
 def get_config():
 
@@ -20,11 +21,11 @@ def get_config():
 def get_widgets():
     
     # WIDGETS
-    st.sidebar.image(
-        image = 'https://variety.com/wp-content/uploads/2023/04/movie-theater-placeholder.jpg?w=500'
-    )
+    # st.sidebar.image(
+    #     image = 'https://variety.com/wp-content/uploads/2023/04/movie-theater-placeholder.jpg?w=500'
+    # )
 
-    st.sidebar.markdown('---')
+    # st.sidebar.markdown('---')
 
     st.sidebar.selectbox(
         label = 'Categoria',
@@ -38,37 +39,34 @@ def get_widgets():
         use_container_width = True
     )
 
+    # SESSION STATE
     if 'dataframe_base' not in st.session_state:
         st.session_state['dataframe_base'] = []
 
     if 'dataframe_filtro' not in st.session_state:
         st.session_state['dataframe_filtro'] = []
-
-# async def get_data():
     
-#     dados = await asyncio.gather(GetMovieMetadata().get_movie_metadata(), GetSeriesMetadata().get_series_metadata())
-#     return dados
+    if 'lista_inicio' not in st.session_state:
+        st.session_state['lista_inicio'] = []
+
+    if 'lista_fim' not in st.session_state:
+        st.session_state['lista_fim'] = []
+
+    if 'lista_duracao' not in st.session_state:
+        st.session_state['lista_duracao'] = []
+
+async def get_data():
+    
+    dados = await asyncio.gather(GetMovieMetadata().get_movie_metadata(), GetSeriesMetadata().get_series_metadata())
+    return dados
 
 def get_data():
     
     # BASE
-    dados_r = st.session_state['dataframe_base']
-
-    try:
-        categorias = {}
-        for i in range(0, len(dados_r)):
-            df = pd.DataFrame(dados_r[i][0])
-            categorias.update(
-                {
-                    list(df.categoria.unique())[0]:i
-                }
-            )
-    except:
-        categorias = {}
-    
-    if st.session_state.atualizar and st.session_state.categorias not in list(categorias.keys()):
+    if st.session_state.atualizar:
         # DADOS
         inicio = datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).replace(microsecond = 0, tzinfo = None)
+        st.session_state['lista_inicio'].insert(0, inicio) 
 
         if st.session_state.categorias == 'series':
             dados = asyncio.run(GetSeriesMetadata(st.session_state.categorias).get_series_metadata())
@@ -76,41 +74,42 @@ def get_data():
             dados = asyncio.run(GetMovieMetadata(st.session_state.categorias).get_movie_metadata())
 
         fim = datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).replace(microsecond = 0, tzinfo = None)
-        
-        # SIDEBAR COM DURACAO
-        st.sidebar.markdown('---')
-        try:
-            st.sidebar.write(f"<b>Início</b>: {inicio}", unsafe_allow_html = True)
-            st.sidebar.write(f"<b>Fim</b>: {fim}", unsafe_allow_html = True)
-            st.sidebar.write(f"<b>Duração</b>: {fim - inicio}", unsafe_allow_html = True)
-        except:
-            pass
+        st.session_state['lista_fim'].insert(0, fim) 
+
+        duracao = fim - inicio
+        st.session_state['lista_duracao'].insert(0, duracao)
 
         df_base = pd.DataFrame(dados[0])
+        st.session_state['dataframe_base'].insert(0, df_base.to_dict(orient = 'list'))
 
-        st.session_state['dataframe_base'].append(df_base.to_dict(orient = 'list'))
-    else:
-        df_base = pd.DataFrame(dados_r[categorias[st.session_state.categorias]][0])
-        st.session_state['dataframe_base'].append(df_base.to_dict(orient = 'list'))
+def get_duration():
+    
+    # SIDEBAR COM DURACAO
+    st.sidebar.markdown('---')
+    try:
+        st.sidebar.write(f"<b>Início</b>: {st.session_state['lista_inicio'][0]}", unsafe_allow_html = True)
+        st.sidebar.write(f"<b>Fim</b>: {st.session_state['lista_fim'][0]}", unsafe_allow_html = True)
+        st.sidebar.write(f"<b>Duração</b>: {st.session_state['lista_fim'][0] - st.session_state['lista_inicio'][0]}", unsafe_allow_html = True)
+    except:
+        pass
 
 def get_filters(df):
     
     # FILTROS
     if st.session_state.categorias == 'series':
         
-        c1, c2 = st.columns([.85,.15])
+        c1, c2 = st.columns([.85,.15], vertical_alignment = 'center')
         with c1:
             with st.container(border = True):
                 col1, col2, col3, col4 = st.columns(4)
                 
                 col1.multiselect(
                     label = '**Gênero**',
-                    options = df.genero.unique(),
+                    options = df.genero.sort_values().unique(),
                     key = 'genero'
                 )
                 col2.slider(
                     label = '**Ano de Lançamento**',
-                    # options = df.ano_raw.sort_values().unique(),
                     min_value = int(df.ano_lancamento.min()),
                     max_value = int(df.ano_lancamento.max()),
                     value = (int(df.ano_lancamento.min()), int(df.ano_lancamento.max())),
@@ -119,7 +118,6 @@ def get_filters(df):
                 )
                 col3.slider(
                     label = '**Temporadas**',
-                    # options = df.temporadas.sort_values().unique(),
                     min_value = int(df.temporadas.min()),
                     max_value = int(df.temporadas.max()),
                     value = (int(df.temporadas.min()), int(df.temporadas.max())),
@@ -128,7 +126,6 @@ def get_filters(df):
                 )
                 col4.slider(
                     label = '**Episódios**',
-                    # options = df.episodios.sort_values().unique(),
                     min_value = int(df.episodios.min()),
                     max_value = int(df.episodios.max()),
                     value = (int(df.episodios.min()), int(df.episodios.max())),
@@ -154,12 +151,11 @@ def get_filters(df):
 
                 col1.multiselect(
                     label = '**Gênero**',
-                    options = df.genero.unique(),
+                    options = df.genero.sort_values().unique(),
                     key = 'genero'
                 )
                 col2.slider(
                     label = '**Ano de Lançamento**',
-                    # options = df.ano_raw.sort_values().unique(),
                     min_value = int(df.ano_lancamento.min()),
                     max_value = int(df.ano_lancamento.max()),
                     value = (int(df.ano_lancamento.min()), int(df.ano_lancamento.max())),
@@ -168,7 +164,6 @@ def get_filters(df):
                 )
                 col3.slider(
                     label = '**IMDB**',
-                    # options = df.nota_float.sort_values().unique(),
                     min_value = float(df.nota_float.min()),
                     max_value = float(df.nota_float.max()),
                     value = (float(df.nota_float.min()), float(df.nota_float.max())),
@@ -208,7 +203,6 @@ def apply_filters(df_base_st):
                 ]
                 .to_dict(orient = 'list')
             )
-            # df_base_st_filt = pd.DataFrame(st.session_state['dataframe_filtro'][-1])
 
         else:
             legendas = df_base_st.legendas.unique() if len(st.session_state.legendas) == 0 else st.session_state.legendas
@@ -219,20 +213,13 @@ def apply_filters(df_base_st):
                 .loc[
                     (df_base_st.genero.isin(genero))
                     & (df_base_st.ano_lancamento.between(st.session_state.ano[0], st.session_state.ano[1]))
-                    & (
-                        df_base_st.nota_float.between(
-                            st.session_state.nota_float[0], 
-                            st.session_state.nota_float[1]
-                        )
-                    )
+                    & (df_base_st.nota_float.between(st.session_state.nota_float[0], st.session_state.nota_float[1]))
                     & (df_base_st.legendas.isin(legendas))
                 ]
                 .to_dict(orient = 'list')
             )
-            # df_base_st_filt = pd.DataFrame(st.session_state['dataframe_filtro'][-1])
     else:
-        # df_base_st_filt = df_base_st.copy()
-        if len(st.session_state['dataframe_filtro']) > 0:
+        if len(st.session_state['dataframe_filtro']) > 0 and st.session_state.categorias in list(set(st.session_state['dataframe_filtro'][0]['categoria'])):
            pass 
         else:
             st.session_state['dataframe_filtro'].insert(0, df_base_st.to_dict(orient = 'list'))
@@ -244,11 +231,38 @@ def apply_filters(df_base_st):
 def get_final_dataframe(df_base_st_filt):
     
     if st.session_state.categorias == 'series':
-        df_final = df_base_st_filt[['image', 'name', 'url', 'description', 'genero', 'episodios', 'temporadas', 'ano_lancamento', 'data_extracao']].sort_values('ano_lancamento', ascending = False, ignore_index = True)
+        df_final = df_base_st_filt[['image', 'name', 'url', 'description', 'genero', 'episodios', 'temporadas', 'ano_lancamento']].sort_values('ano_lancamento', ascending = False, ignore_index = True)
     else:
-        df_final = df_base_st_filt[['image', 'name', 'url', 'description', 'genero', 'nota_float', 'legendas', 'ano_lancamento', 'data_extracao']].sort_values('nota_float', ascending = False, ignore_index = True)
+        df_final = df_base_st_filt[['image', 'name', 'url', 'description', 'genero', 'nota_float', 'legendas', 'ano_lancamento']].sort_values('nota_float', ascending = False, ignore_index = True)
 
-    st.data_editor(
+    st.markdown(
+        f"""
+        <style>
+        .card {{
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            margin: 10px 0;
+            width: 100%;
+            height: 50px;
+            min-height: 50px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+        }}
+        </style>
+        <div class="card">
+            <b> Resultados </b>{df_final.shape[0]}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    
+    st.dataframe(
         data = df_final, 
         use_container_width = True,
         column_config = {

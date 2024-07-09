@@ -55,10 +55,10 @@ def get_widgets():
     if 'lista_duracao' not in st.session_state:
         st.session_state['lista_duracao'] = []
 
-async def get_data():
+# async def get_data():
     
-    dados = await asyncio.gather(GetMovieMetadata().get_movie_metadata(), GetSeriesMetadata().get_series_metadata())
-    return dados
+#     dados = await asyncio.gather(GetMovieMetadata().get_movie_metadata(), GetSeriesMetadata().get_series_metadata())
+#     return dados
 
 def get_data():
     

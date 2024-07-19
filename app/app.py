@@ -13,7 +13,12 @@ get_config()
 get_widgets()
 
 # BASE
-get_data()
+if st.session_state.categorias == 'series':
+    dados = asyncio.run(GetSeriesMetadata(st.session_state.categorias).get_series_metadata())
+else:
+    dados = asyncio.run(GetMovieMetadata(st.session_state.categorias).get_movie_metadata())
+    
+get_data(dados)
 
 # SIDEBAR COM DURACAO
 get_duration()

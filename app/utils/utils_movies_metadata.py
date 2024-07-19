@@ -172,6 +172,7 @@ class GetMovieMetadata:
 
         movies_data = await GetMovieData(self._category).get_movie_data()
         results = []
+        
         async with aiohttp.ClientSession(headers = {'encoding':'utf-8'}) as session:
                 tasks = [
                     self.get_urls(session = session, url = x['movie_url'], uuid = x['uuid'], movie_name = x['movie_name'], movie_url = x['movie_url'], logo = x['logo'])

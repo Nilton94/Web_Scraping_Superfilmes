@@ -13,7 +13,7 @@ get_config()
 get_widgets()
 
 # BASE
-get_data()
+dados = asyncio.run(get_data())
 
 # SIDEBAR COM DURACAO
 get_duration()

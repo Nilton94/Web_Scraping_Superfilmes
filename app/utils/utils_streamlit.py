@@ -63,7 +63,7 @@ def get_widgets():
     
 #     return df
 
-def get_data():
+async def get_data():
     
     # BASE
     if st.session_state.atualizar:
@@ -72,9 +72,11 @@ def get_data():
         st.session_state['lista_inicio'].insert(0, inicio) 
 
         if st.session_state.categorias == 'series':
-            dados = asyncio.run(GetSeriesMetadata(st.session_state.categorias).get_series_metadata())
+            # dados = asyncio.run(GetSeriesMetadata(st.session_state.categorias).get_series_metadata())
+            dados = await GetSeriesMetadata(st.session_state.categorias).get_series_metadata()
         else:
-            dados = asyncio.run(GetMovieMetadata(st.session_state.categorias).get_movie_metadata())
+            # dados = asyncio.run(GetMovieMetadata(st.session_state.categorias).get_movie_metadata())
+            dados = await GetMovieMetadata(st.session_state.categorias).get_movie_metadata()
 
         fim = datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).replace(microsecond = 0, tzinfo = None)
         st.session_state['lista_fim'].insert(0, fim) 
@@ -84,6 +86,8 @@ def get_data():
 
         df_base = pd.DataFrame(dados[0])
         st.session_state['dataframe_base'].insert(0, df_base.to_dict(orient = 'list'))
+
+        return dados
 
 def get_duration():
     

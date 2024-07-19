@@ -160,10 +160,7 @@ class GetSeriesMetadata:
         movies_data = await GetSeriesData(self._category).get_series_data()
         results = []
         async with aiohttp.ClientSession(headers = {'encoding':'utf-8'}) as session:
-                tasks = [
-                    self.get_urls(session = session, url = x['url'], uuid = x['uuid'], series_name = x['name'], series_url = x['url'], logo = x['logo'], duracao = x['duracao'])
-                    for x in movies_data
-                ]
+                tasks = [self.get_urls(session = session, url = x['url'], uuid = x['uuid'], series_name = x['name'], series_url = x['url'], logo = x['logo'], duracao = x['duracao']) for x in movies_data]
                 html_pages = await asyncio.gather(*tasks)
                 results.append(html_pages)
 

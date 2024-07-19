@@ -57,9 +57,11 @@ def get_widgets():
 
 async def get_async_data():
     if st.session_state.categorias == 'series':
-        return await GetSeriesMetadata(st.session_state.categorias).get_series_metadata()
+        df = await GetSeriesMetadata(st.session_state.categorias).get_series_metadata()
     else:
-        return await GetMovieMetadata(st.session_state.categorias).get_movie_metadata()
+        df = await GetMovieMetadata(st.session_state.categorias).get_movie_metadata()
+    
+    return df
 
 def get_data():
     
@@ -73,9 +75,10 @@ def get_data():
         #     dados = asyncio.run(GetSeriesMetadata(st.session_state.categorias).get_series_metadata())
         # else:
         #     dados = asyncio.run(GetMovieMetadata(st.session_state.categorias).get_movie_metadata())
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        dados = loop.run_until_complete(get_async_data())
+        
+        # loop = asyncio.new_event_loop()
+        # asyncio.set_event_loop(loop)
+        dados = asyncio.run(get_async_data())
 
         fim = datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).replace(microsecond = 0, tzinfo = None)
         st.session_state['lista_fim'].insert(0, fim) 
@@ -105,12 +108,17 @@ def get_filters(df):
         c1, c2 = st.columns([.85,.15], vertical_alignment = 'center')
         with c1:
             with st.container(border = True):
-                col1, col2, col3, col4 = st.columns(4)
+                col1, col11, col2, col3, col4 = st.columns(5)
                 
                 col1.multiselect(
                     label = '**Gênero**',
                     options = df.genero.sort_values().unique(),
                     key = 'genero'
+                )
+                col11.multiselect(
+                    label = '**Nome**',
+                    options = df.name.sort_values().unique(),
+                    key = 'nome'
                 )
                 col2.slider(
                     label = '**Ano de Lançamento**',
@@ -252,7 +260,8 @@ def get_final_dataframe(df_base_st_filt):
             width: 100%;
             height: 50px;
             min-height: 50px;
-            background-color: #f0f0f0;
+            background-color: "#FFFFFF";
+            color: "#00008B";
             border: 1px solid #ccc;
             border-radius: 5px;
             box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);

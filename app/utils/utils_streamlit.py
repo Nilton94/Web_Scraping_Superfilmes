@@ -87,7 +87,7 @@ async def get_data():
         df_base = pd.DataFrame(dados[0])
         st.session_state['dataframe_base'].insert(0, df_base.to_dict(orient = 'list'))
 
-        return dados
+        # return dados
 
 def get_duration():
     

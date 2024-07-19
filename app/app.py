@@ -13,7 +13,15 @@ get_config()
 get_widgets()
 
 # BASE
-dados = asyncio.run(get_data())
+try:
+    loop = asyncio.get_running_loop()
+except RuntimeError:
+    loop = None
+
+if loop and loop.is_running():
+    tsk = loop.create_task(get_data())
+else:
+    result = asyncio.run(get_data())
 
 # SIDEBAR COM DURACAO
 get_duration()

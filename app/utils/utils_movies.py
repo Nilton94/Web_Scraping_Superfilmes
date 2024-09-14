@@ -1,7 +1,7 @@
 import aiohttp
 import asyncio
 from bs4 import BeautifulSoup
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from utils.utils_uuid import generate_uuid
 from utils.utils_pages import GetPageNumber
 from utils.utils_images import save_image
@@ -10,6 +10,7 @@ import datetime, pytz
 @dataclass
 class GetMovieData:
     _category: str = 'filmes'
+    _domain = 'https://' + GetPageNumber(_category = 'filmes').get_domain()
 
     async def get_urls(self, session, url):
         '''
@@ -28,9 +29,9 @@ class GetMovieData:
 
             for item in soup.select('.zmovo-video-item-box'):
                 movie_name = item.select_one('.zmovo-v-box-content a.glow').text.strip()
-                movie_url = 'https://superfilmes.red' + item.select_one('.zmovo-v-box-content a.glow')['href']
+                movie_url = self._domain + item.select_one('.zmovo-v-box-content a.glow')['href']
                 movie_genre = item.select_one('.zmovo-v-tag span').text.strip()
-                logo = 'https://superfilmes.red' + item.select_one('img')['data-src']
+                logo = self._domain + item.select_one('img')['data-src']
                 
                 save_image(
                     uuid = str(generate_uuid(movie_name.lower())),
@@ -66,7 +67,7 @@ class GetMovieData:
         try:
             page_number = GetPageNumber(_category = self._category).get_page_number()
 
-            urls = [f'https://superfilmes.red/{self._category}/{i}/' for i in range(1, page_number+1)]
+            urls = [f'{self._domain}/{self._category}/{i}/' for i in range(1, page_number+1)]
             results = []
 
             async with aiohttp.ClientSession(headers = {'encoding':'utf-8'}) as session:

@@ -10,6 +10,7 @@ import datetime, pytz
 @dataclass
 class GetSeriesData:
     _category: str = 'series'
+    _domain = 'https://' + GetPageNumber(_category = 'series').get_domain()
 
     async def get_urls(self, session, url):
         '''
@@ -28,9 +29,9 @@ class GetSeriesData:
 
             for item in soup.select('.zmovo-video-item-box'):
                 name = item.select_one('.zmovo-v-box-content a.glow').text.strip()
-                url = 'https://superfilmes.red' + item.select_one('.zmovo-v-box-content a.glow')['href']
+                url = self._domain + item.select_one('.zmovo-v-box-content a.glow')['href']
                 genre = item.select_one('.zmovo-v-tag span').text.strip()
-                logo = 'https://superfilmes.red/' + item.select_one('img')['data-src']
+                logo = self._domain + item.select_one('img')['data-src']
                 duracao = item.find('div', 'movie-time').text
                 
                 save_image(
@@ -68,7 +69,7 @@ class GetSeriesData:
         try:
             page_number = GetPageNumber(_category = self._category).get_page_number()
 
-            urls = [f'https://superfilmes.red/{self._category}/{i}/' for i in range(1, page_number+1)]
+            urls = [f'{self._domain}/{self._category}/{i}/' for i in range(1, page_number+1)]
             results = []
 
             async with aiohttp.ClientSession(headers = {'encoding':'utf-8'}) as session:

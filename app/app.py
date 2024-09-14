@@ -13,23 +13,25 @@ get_config()
 get_widgets()
 
 # BASE
-loop = None
+# loop = None
 
-try:
-    loop = asyncio.new_event_loop()
-    loop.run_until_complete(get_data())
-except:
-    # Close the existing loop if open
-    if loop is not None:
-        loop.close()
+# try:
+#     loop = asyncio.new_event_loop()
+#     loop.run_until_complete(get_data())
+# except:
+#     # Close the existing loop if open
+#     if loop is not None:
+#         loop.close()
 
-    # Create a new loop for retry
-    loop = asyncio.new_event_loop()
+#     # Create a new loop for retry
+#     loop = asyncio.new_event_loop()
 
-    loop.run_until_complete(get_data())
-finally:
-    if loop is not None:
-        loop.close()
+#     loop.run_until_complete(get_data())
+# finally:
+#     if loop is not None:
+#         loop.close()
+# asyncio.run(get_data())
+get_data()
 
 # SIDEBAR COM DURACAO
 get_duration()

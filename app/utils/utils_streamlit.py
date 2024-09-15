@@ -90,15 +90,21 @@ async def get_data():
         return dados
     
 def run_get_data():
+    # The async function (coroutine) to be run
+    coroutine = get_data()
+
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
-        # Create a new event loop for the current thread
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-    
-    # Run the async task in the event loop
-    return loop.run_until_complete(get_data())
+        loop = None
+
+    if loop and loop.is_running():
+        # If there's an active event loop, use asyncio.run_coroutine_threadsafe
+        future = asyncio.run_coroutine_threadsafe(coroutine, loop)
+        return future.result()
+    else:
+        # Otherwise, create a new loop and run it synchronously
+        return asyncio.run(coroutine)
 
 def get_duration():
     

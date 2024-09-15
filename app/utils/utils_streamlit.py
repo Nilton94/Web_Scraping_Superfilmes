@@ -88,6 +88,9 @@ async def get_data():
         st.session_state['dataframe_base'].insert(0, df_base.to_dict(orient = 'list'))
 
         return dados
+    
+def run_get_data():
+    return asyncio.run(get_data())
 
 def get_duration():
     

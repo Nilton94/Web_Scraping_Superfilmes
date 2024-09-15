@@ -1,5 +1,7 @@
 import aiohttp
 import asyncio
+import requests
+from concurrent.futures import ThreadPoolExecutor
 from bs4 import BeautifulSoup
 from dataclasses import dataclass
 from utils.utils_uuid import generate_uuid
@@ -83,6 +85,63 @@ class GetSeriesData:
             movie_data = [movie for row in results[0] for movie in row]
             
             return movie_data
+        
+        except Exception as e:
+            print(f'Erro: {e}')
+
+    def get_urls_sync(self, url):
+        
+        series = []
+        r = requests.get(url)
+        soup = BeautifulSoup(r.text, 'html.parser')
+
+        for item in soup.select('.zmovo-video-item-box'):
+            name = item.select_one('.zmovo-v-box-content a.glow').text.strip()
+            url = self._domain + item.select_one('.zmovo-v-box-content a.glow')['href']
+            genre = item.select_one('.zmovo-v-tag span').text.strip()
+            logo = self._domain + item.select_one('img')['data-src']
+            duracao = item.find('div', 'movie-time').text
+            
+            save_image(
+                uuid = str(generate_uuid(name.lower())),
+                category = self._category,
+                logo_url = logo
+            )
+
+            series.append(
+                {
+                    'uuid': str(generate_uuid(name.lower())),
+                    'name': name, 
+                    'url': url, 
+                    'genre': genre, 
+                    'duracao': duracao,
+                    'logo': logo,
+                    'data_extracao': str(datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).replace(microsecond=0).strftime('%Y-%m-%d %H:%M:%S')),
+                    'ano_extracao': str(datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).replace(microsecond=0).year),
+                    'mes_extracao': str(datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).replace(microsecond=0).month),
+                    'dia_extracao': str(datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).replace(microsecond=0).day)
+                }
+            )
+        
+        return series
+
+    def get_series_data_sync(self):
+        
+        try:
+            page_number = GetPageNumber(_category = self._category).get_page_number()
+            urls = [f'{self._domain}/{self._category}/{i}/' for i in range(1, page_number+1)]
+
+            results = []
+            with ThreadPoolExecutor(max_workers = 6) as executor:
+                futures = {executor.submit(self.get_urls_sync, url) for url in urls}
+
+                for future in futures:
+                    result = future.result() 
+                    results.extend(result)
+
+            # movie_data = [movie for row in results[0] for movie in row]
+            
+            return results
         
         except Exception as e:
             print(f'Erro: {e}')

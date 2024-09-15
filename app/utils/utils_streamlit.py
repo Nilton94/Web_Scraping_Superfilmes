@@ -87,7 +87,7 @@ def get_data():
         df_base = pd.DataFrame(dados[0])
         st.session_state['dataframe_base'].insert(0, df_base.to_dict(orient = 'list'))
 
-        # return dados
+        return dados
 
 def get_duration():
     
@@ -111,14 +111,14 @@ def get_filters(df):
                 col1, col11, col2, col3, col4 = st.columns(5)
                 
                 col1.multiselect(
+                    label = '**Nome**',
+                    options = df.name.sort_values().unique(),
+                    key = 'name'
+                )
+                col11.multiselect(
                     label = '**Gênero**',
                     options = df.genero.sort_values().unique(),
                     key = 'genero'
-                )
-                col11.multiselect(
-                    label = '**Nome**',
-                    options = df.name.sort_values().unique(),
-                    key = 'nome'
                 )
                 col2.slider(
                     label = '**Ano de Lançamento**',
@@ -159,9 +159,14 @@ def get_filters(df):
         c1, c2 = st.columns([.85,.15])
         with c1:
             with st.container(border = True):
-                col1, col2, col3, col4 = st.columns(4)
+                col1, col11, col2, col3, col4 = st.columns(5)
 
                 col1.multiselect(
+                    label = '**Nome**',
+                    options = df.name.sort_values().unique(),
+                    key = 'name'
+                )
+                col11.multiselect(
                     label = '**Gênero**',
                     options = df.genero.sort_values().unique(),
                     key = 'genero'
@@ -201,6 +206,7 @@ def apply_filters(df_base_st):
     
     
     genero = df_base_st.genero.unique() if len(st.session_state.genero) == 0 else st.session_state.genero
+    name = df_base_st.name.unique() if len(st.session_state.name) == 0 else st.session_state.name
 
     if st.session_state.filtrar:
         if st.session_state.categorias == 'series':
@@ -209,6 +215,7 @@ def apply_filters(df_base_st):
                 df_base_st
                 .loc[
                     (df_base_st.genero.isin(genero))
+                    & (df_base_st.name.isin(name))
                     & (df_base_st.ano_lancamento.between(st.session_state.ano[0], st.session_state.ano[1]))
                     & (df_base_st.temporadas.between(st.session_state.temporadas[0], st.session_state.temporadas[1]))
                     & (df_base_st.episodios.between(st.session_state.episodios[0], st.session_state.episodios[1]))
@@ -224,6 +231,7 @@ def apply_filters(df_base_st):
                 df_base_st
                 .loc[
                     (df_base_st.genero.isin(genero))
+                    & (df_base_st.name.isin(name))
                     & (df_base_st.ano_lancamento.between(st.session_state.ano[0], st.session_state.ano[1]))
                     & (df_base_st.nota_float.between(st.session_state.nota_float[0], st.session_state.nota_float[1]))
                     & (df_base_st.legendas.isin(legendas))

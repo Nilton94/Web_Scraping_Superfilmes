@@ -90,7 +90,16 @@ async def get_data():
         return dados
     
 def run_get_data():
-    return asyncio.run(get_data())
+    loop = asyncio.get_event_loop()
+
+    # If the event loop is running, use create_task to handle async
+    if loop.is_running():
+        # Create and schedule a task for the async function
+        task = asyncio.create_task(get_data())
+        return task
+    else:
+        # Otherwise, run it as usual
+        return loop.run_until_complete(get_data())
 
 def get_duration():
     

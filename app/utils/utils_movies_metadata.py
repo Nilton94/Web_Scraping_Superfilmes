@@ -2,6 +2,9 @@ import aiohttp
 import asyncio
 import re
 import requests
+import pyarrow as pa
+import pyarrow.parquet as pq
+import pandas as pd
 from concurrent.futures import ThreadPoolExecutor
 from bs4 import BeautifulSoup
 from dataclasses import dataclass
@@ -183,6 +186,17 @@ class GetMovieMetadata:
                 html_pages = await asyncio.gather(*tasks)
                 results.append(html_pages)
 
+        # Salvando dados brutos
+        path = os.path.join(os.getcwd(), 'data', 'filmes') if os.getcwd().__contains__('app') else os.path.join(os.getcwd(), 'app', 'data', 'filmes')
+
+        pq.write_to_dataset(
+            table = pa.Table.from_pandas(pd.DataFrame(results[0])),
+            root_path = path,
+            existing_data_behavior = 'delete_matching',
+            basename_template = f"{datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).year}_filmes" + "{i}.parquet",
+            use_legacy_dataset = False
+        )
+        
         return results
     
     def get_urls_sync(self, url, uuid, movie_name, movie_url, logo):

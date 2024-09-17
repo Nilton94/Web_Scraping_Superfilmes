@@ -1,6 +1,9 @@
 import aiohttp
 import asyncio
 import re
+import pyarrow as pa
+import pyarrow.parquet as pq
+import pandas as pd
 from bs4 import BeautifulSoup
 from dataclasses import dataclass
 from utils.utils_uuid import generate_uuid
@@ -163,5 +166,16 @@ class GetSeriesMetadata:
                 tasks = [self.get_urls(session = session, url = x['url'], uuid = x['uuid'], series_name = x['name'], series_url = x['url'], logo = x['logo'], duracao = x['duracao']) for x in movies_data]
                 html_pages = await asyncio.gather(*tasks)
                 results.append(html_pages)
+
+        # Salvando dados brutos
+        path = os.path.join(os.getcwd(), 'data', 'series') if os.getcwd().__contains__('app') else os.path.join(os.getcwd(), 'app', 'data', 'series')
+
+        pq.write_to_dataset(
+            table = pa.Table.from_pandas(pd.DataFrame(results[0])),
+            root_path = path,
+            existing_data_behavior = 'delete_matching',
+            basename_template = f"{datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).year}_series" + "{i}.parquet",
+            use_legacy_dataset = False
+        )
 
         return results

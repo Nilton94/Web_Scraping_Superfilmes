@@ -55,15 +55,7 @@ def get_widgets():
     if 'lista_duracao' not in st.session_state:
         st.session_state['lista_duracao'] = []
 
-# async def get_async_data():
-#     if st.session_state.categorias == 'series':
-#         df = await GetSeriesMetadata(st.session_state.categorias).get_series_metadata()
-#     else:
-#         df = await GetMovieMetadata(st.session_state.categorias).get_movie_metadata()
-    
-#     return df
-
-async def get_data():
+def get_data():
     
     # BASE
     if st.session_state.atualizar:
@@ -72,11 +64,11 @@ async def get_data():
         st.session_state['lista_inicio'].insert(0, inicio) 
 
         if st.session_state.categorias == 'series':
-            # dados = asyncio.run(GetSeriesMetadata(st.session_state.categorias).get_series_metadata())
-            dados = await GetSeriesMetadata(st.session_state.categorias).get_series_metadata()
+            dados = asyncio.run(GetSeriesMetadata(st.session_state.categorias).get_series_metadata())
+            # dados = await GetSeriesMetadata(st.session_state.categorias).get_series_metadata()
         else:
-            # dados = asyncio.run(GetMovieMetadata(st.session_state.categorias).get_movie_metadata())
-            dados = await GetMovieMetadata(st.session_state.categorias).get_movie_metadata()
+            dados = asyncio.run(GetMovieMetadata(st.session_state.categorias).get_movie_metadata())
+            # dados = await GetMovieMetadata(st.session_state.categorias).get_movie_metadata()
 
         fim = datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).replace(microsecond = 0, tzinfo = None)
         st.session_state['lista_fim'].insert(0, fim) 
@@ -88,23 +80,12 @@ async def get_data():
         st.session_state['dataframe_base'].insert(0, df_base.to_dict(orient = 'list'))
 
         return dados
+
+def run_data():
     
-def run_get_data():
-    # The async function (coroutine) to be run
-    coroutine = get_data()
+    df = get_data()
 
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = None
-
-    if loop and loop.is_running():
-        # If there's an active event loop, use asyncio.run_coroutine_threadsafe
-        future = asyncio.run_coroutine_threadsafe(coroutine, loop)
-        return future.result()
-    else:
-        # Otherwise, create a new loop and run it synchronously
-        return asyncio.run(coroutine)
+    return df
 
 def get_duration():
     
@@ -118,6 +99,9 @@ def get_duration():
         pass
 
 def get_filters(df):
+    
+    
+    # df = get_data()
     
     # FILTROS
     if st.session_state.categorias == 'series':

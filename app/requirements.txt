@@ -8,10 +8,12 @@ beautifulsoup4==4.12.3
 blinker==1.8.2
 cachetools==5.3.3
 certifi==2024.6.2
+cffi==1.17.1
 charset-normalizer==3.3.2
 click==8.1.7
 colorama==0.4.6
 comm==0.2.2
+curl_cffi==0.7.1
 debugpy==1.8.1
 decorator==5.1.1
 executing==2.0.1
@@ -45,6 +47,7 @@ protobuf==5.27.1
 psutil==6.0.0
 pure-eval==0.2.2
 pyarrow==16.1.0
+pycparser==2.22
 pydeck==0.9.1
 Pygments==2.18.0
 python-dateutil==2.9.0.post0

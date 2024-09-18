@@ -4,7 +4,7 @@ import asyncio
 import datetime, pytz
 import pandas as pd
 import streamlit as st 
-from utils.utils_streamlit import get_config, get_widgets, get_data, get_filters, apply_filters, get_final_dataframe, get_duration, run_data
+from utils.utils_streamlit import get_config, get_widgets, get_data, get_filters, apply_filters, get_final_dataframe, get_duration
 
 # CONFIGS
 get_config()
@@ -13,8 +13,7 @@ get_config()
 get_widgets()
 
 # BASE
-# get_data()
-run_data()
+get_data()
 
 # SIDEBAR COM DURACAO
 get_duration()

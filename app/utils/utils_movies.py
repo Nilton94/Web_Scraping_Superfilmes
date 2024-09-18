@@ -8,6 +8,7 @@ from utils.utils_uuid import generate_uuid
 from utils.utils_pages import GetPageNumber
 from utils.utils_images import save_image
 import datetime, pytz
+import streamlit as st
 
 @dataclass
 class GetMovieData:
@@ -88,6 +89,7 @@ class GetMovieData:
             print(f'Erro: {e}')
     
 
+    @st.cache_data(ttl = 86400)
     def get_urls_sync(self, url):
         
         movies = []
@@ -122,6 +124,7 @@ class GetMovieData:
         
         return movies
     
+    @st.cache_data(ttl = 86400)
     def get_movie_data_sync(self):
 
         try:

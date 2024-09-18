@@ -185,129 +185,132 @@ class GetSeriesMetadata:
     @st.cache_data(ttl = 86400)
     def get_urls_sync(self, url, duracao, uuid, series_name, series_url, logo):
 
-        r = requests.get(url)
-        soup = BeautifulSoup(r.text, 'html.parser')
-
-        # DESCRIPTION
         try:
-            description = soup.find('p',{'itemprop':'description'}).text
-        except:
-            description = 'Null'
+            r = requests.get(url)
+            soup = BeautifulSoup(r.text, 'html.parser')
 
-        # METADADOS
-        try:
-            dados_gerais = {
-                re.sub(r"\s*:*", "", x.find('span').text): x.find_all('a') 
-                for x in soup.find('div', 'dec-review-meta').find_all('li')
+            # DESCRIPTION
+            try:
+                description = soup.find('p',{'itemprop':'description'}).text
+            except:
+                description = 'Null'
+
+            # METADADOS
+            try:
+                dados_gerais = {
+                    re.sub(r"\s*:*", "", x.find('span').text): x.find_all('a') 
+                    for x in soup.find('div', 'dec-review-meta').find_all('li')
+                }
+
+                dados_gerais_final = {
+                    k:', '.join([i.text for i in dados_gerais[k]]) 
+                    for k,_ in dados_gerais.items()
+                }
+
+                genero = dados_gerais_final['Gênero']
+                elenco = dados_gerais_final['Elenco']
+                direcao = dados_gerais_final['Direção']
+                ano = dados_gerais_final['Ano']
+            except:
+                genero = 'Null'
+                elenco = 'Null'
+                direcao = 'Null'
+                ano = 'Null'
+
+            # GENERO AJUSTADO
+            try:
+                genero = re.sub(r'\s*', '', genero).split(',')
+                genero.sort()
+                genero_final = ', '.join(genero)
+            except:
+                genero_final = 'Null'
+
+            # Ano
+            try:
+                ano_int = int(ano.strip().replace(r'\n', ''))
+            except:
+                ano_int = None
+
+            # Temporadas atualizadas - float
+            try:
+                temporadas_float = float(re.sub(r'[^\d]', '', soup.find('div', 'rowp').find('h4').text))
+            except:
+                temporadas_float = None
+            
+            # Temporadas atualizadas - string
+            try:
+                temporadas_raw = soup.find('div', 'rowp').find('h4').text
+            except:
+                temporadas_raw = None
+
+            # LISTA TEMPORADAS
+            try:
+                lista_temporadas = [i.text for i in soup.find_all('button', 'accordion')]
+            except:
+                lista_temporadas = None
+
+            # LEGENDAS
+            try:
+                dados = []
+                for i in soup.find_all('div', 'mvcast-item'):
+                    temporada = re.search(r'(\d*)x(\d*)', i.find('h4').text).groups()[0]
+                    episodio = re.search(r'(\d*)x(\d*)', i.find('h4').text).groups()[1]
+                    legendas = [l.text for l in i.find_all('a')]
+
+                    dados.append(
+                        {
+                            # 'uuid': str(uuid),
+                            'temporada': temporada,
+                            'episodio': episodio, 
+                            'legendas': legendas
+                        }
+                    )
+            except:
+                dados = []
+
+            # Episodios
+            episodios = len(dados)
+
+            # LOGO FOLDER
+            try:
+                logo_folder = os.path.join(os.getcwd(), 'assets', f'{self._category}', f'{uuid}.png') if os.getcwd().__contains__('app') else os.path.join(os.getcwd(), 'app', 'assets', f'{self._category}', f'{uuid}.png')
+                image = open_image(uuid = uuid, category = self._category)
+            except:
+                logo_folder = ''
+                image = None
+
+            # Base final
+            metadata = {
+                'uuid': str(uuid),
+                'name': series_name, 
+                'categoria': self._category,
+                'url': series_url, 
+                'url_src': f'<a href="{series_url}" target="_blank">{series_name}</a>',
+                'logo': logo,
+                'logo_src': f'<img src="{logo}" width="100" height="150">',
+                'logo_folder': logo_folder,
+                'image': image,
+                'description': description,
+                'genero': genero_final,
+                'elenco': elenco,
+                'direcao': direcao,
+                'ano_raw': ano,
+                'ano_lancamento': ano_int,
+                'duracao': duracao,
+                'temporadas': temporadas_float,
+                'episodios': episodios,
+                'data_extracao': str(datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).replace(microsecond=0).strftime('%Y-%m-%d %H:%M:%S')),
+                'ano_extracao': str(datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).replace(microsecond=0).year),
+                'mes_extracao': str(datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).replace(microsecond=0).month),
+                'dia_extracao': str(datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).replace(microsecond=0).day)
+
             }
-
-            dados_gerais_final = {
-                k:', '.join([i.text for i in dados_gerais[k]]) 
-                for k,_ in dados_gerais.items()
-            }
-
-            genero = dados_gerais_final['Gênero']
-            elenco = dados_gerais_final['Elenco']
-            direcao = dados_gerais_final['Direção']
-            ano = dados_gerais_final['Ano']
+            
+            return metadata
         except:
-            genero = 'Null'
-            elenco = 'Null'
-            direcao = 'Null'
-            ano = 'Null'
-
-        # GENERO AJUSTADO
-        try:
-            genero = re.sub(r'\s*', '', genero).split(',')
-            genero.sort()
-            genero_final = ', '.join(genero)
-        except:
-            genero_final = 'Null'
-
-        # Ano
-        try:
-            ano_int = int(ano.strip().replace(r'\n', ''))
-        except:
-            ano_int = None
-
-        # Temporadas atualizadas - float
-        try:
-            temporadas_float = float(re.sub(r'[^\d]', '', soup.find('div', 'rowp').find('h4').text))
-        except:
-            temporadas_float = None
-        
-        # Temporadas atualizadas - string
-        try:
-            temporadas_raw = soup.find('div', 'rowp').find('h4').text
-        except:
-            temporadas_raw = None
-
-        # LISTA TEMPORADAS
-        try:
-            lista_temporadas = [i.text for i in soup.find_all('button', 'accordion')]
-        except:
-            lista_temporadas = None
-
-        # LEGENDAS
-        try:
-            dados = []
-            for i in soup.find_all('div', 'mvcast-item'):
-                temporada = re.search(r'(\d*)x(\d*)', i.find('h4').text).groups()[0]
-                episodio = re.search(r'(\d*)x(\d*)', i.find('h4').text).groups()[1]
-                legendas = [l.text for l in i.find_all('a')]
-
-                dados.append(
-                    {
-                        # 'uuid': str(uuid),
-                        'temporada': temporada,
-                        'episodio': episodio, 
-                        'legendas': legendas
-                    }
-                )
-        except:
-            dados = []
-
-        # Episodios
-        episodios = len(dados)
-
-        # LOGO FOLDER
-        try:
-            logo_folder = os.path.join(os.getcwd(), 'assets', f'{self._category}', f'{uuid}.png') if os.getcwd().__contains__('app') else os.path.join(os.getcwd(), 'app', 'assets', f'{self._category}', f'{uuid}.png')
-            image = open_image(uuid = uuid, category = self._category)
-        except:
-            logo_folder = ''
-            image = None
-
-        # Base final
-        metadata = {
-            'uuid': str(uuid),
-            'name': series_name, 
-            'categoria': self._category,
-            'url': series_url, 
-            'url_src': f'<a href="{series_url}" target="_blank">{series_name}</a>',
-            'logo': logo,
-            'logo_src': f'<img src="{logo}" width="100" height="150">',
-            'logo_folder': logo_folder,
-            'image': image,
-            'description': description,
-            'genero': genero_final,
-            'elenco': elenco,
-            'direcao': direcao,
-            'ano_raw': ano,
-            'ano_lancamento': ano_int,
-            'duracao': duracao,
-            'temporadas': temporadas_float,
-            'episodios': episodios,
-            'data_extracao': str(datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).replace(microsecond=0).strftime('%Y-%m-%d %H:%M:%S')),
-            'ano_extracao': str(datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).replace(microsecond=0).year),
-            'mes_extracao': str(datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).replace(microsecond=0).month),
-            'dia_extracao': str(datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).replace(microsecond=0).day)
-
-        }
-        
-        return metadata
+            pass
     
-    # @st.cache_data(ttl = 86400)
+    @st.cache_data(ttl = 86400)
     def get_series_metadata_sync(self):
 
         series_data = GetSeriesData(self._category).get_series_data_sync()

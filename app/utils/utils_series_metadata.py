@@ -307,7 +307,7 @@ class GetSeriesMetadata:
         
         return metadata
     
-    @st.cache_data(ttl = 86400)
+    # @st.cache_data(ttl = 86400)
     def get_series_metadata_sync(self):
 
         series_data = GetSeriesData(self._category).get_series_data_sync()

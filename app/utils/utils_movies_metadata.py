@@ -15,6 +15,7 @@ from utils.utils_images import open_image
 import datetime, pytz
 from PIL import Image
 import os
+import streamlit as st
 
 @dataclass
 class GetMovieMetadata:
@@ -187,18 +188,19 @@ class GetMovieMetadata:
                 results.append(html_pages)
 
         # Salvando dados brutos
-        path = os.path.join(os.getcwd(), 'data', 'filmes') if os.getcwd().__contains__('app') else os.path.join(os.getcwd(), 'app', 'data', 'filmes')
+        # path = os.path.join(os.getcwd(), 'data', 'filmes') if os.getcwd().__contains__('app') else os.path.join(os.getcwd(), 'app', 'data', 'filmes')
 
-        pq.write_to_dataset(
-            table = pa.Table.from_pandas(pd.DataFrame(results[0])),
-            root_path = path,
-            existing_data_behavior = 'delete_matching',
-            basename_template = f"{datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).year}_filmes" + "{i}.parquet",
-            use_legacy_dataset = False
-        )
+        # pq.write_to_dataset(
+        #     table = pa.Table.from_pandas(pd.DataFrame(results[0])),
+        #     root_path = path,
+        #     existing_data_behavior = 'delete_matching',
+        #     basename_template = f"{datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).year}_filmes" + "{i}.parquet",
+        #     use_legacy_dataset = False
+        # )
         
         return results
     
+    @st.cache_data(ttl = 86400)
     def get_urls_sync(self, url, uuid, movie_name, movie_url, logo):
 
         r = requests.get(url)
@@ -337,6 +339,7 @@ class GetMovieMetadata:
         
         return metadata
     
+    @st.cache_data(ttl = 86400)
     def get_movie_metadata_sync(self):
 
         movies_data = GetMovieData(self._category).get_movie_data_sync()
@@ -357,6 +360,6 @@ class GetMovieMetadata:
 
             for future in futures:
                 result = future.result() 
-                results.extend(result)
+                results.append(result)
 
         return results

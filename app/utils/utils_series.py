@@ -8,6 +8,7 @@ from utils.utils_uuid import generate_uuid
 from utils.utils_pages import GetPageNumber
 from utils.utils_images import save_image
 import datetime, pytz
+import streamlit as st
 
 @dataclass
 class GetSeriesData:
@@ -89,6 +90,7 @@ class GetSeriesData:
         except Exception as e:
             print(f'Erro: {e}')
 
+    @st.cache_data(ttl = 86400)
     def get_urls_sync(self, url):
         
         series = []
@@ -125,6 +127,7 @@ class GetSeriesData:
         
         return series
 
+    @st.cache_data(ttl = 86400)
     def get_series_data_sync(self):
         
         try:
@@ -132,7 +135,7 @@ class GetSeriesData:
             urls = [f'{self._domain}/{self._category}/{i}/' for i in range(1, page_number+1)]
 
             results = []
-            with ThreadPoolExecutor(max_workers = 6) as executor:
+            with ThreadPoolExecutor(max_workers = 10) as executor:
                 futures = {executor.submit(self.get_urls_sync, url) for url in urls}
 
                 for future in futures:

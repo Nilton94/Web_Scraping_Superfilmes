@@ -13,7 +13,8 @@ get_config()
 get_widgets()
 
 # BASE
-get_data()
+x = get_data()
+len(x)
 
 # SIDEBAR COM DURACAO
 get_duration()

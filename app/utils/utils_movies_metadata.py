@@ -176,16 +176,20 @@ class GetMovieMetadata:
                 list of dictionaries with html content for every movie
         '''
 
-        movies_data = await GetMovieData(self._category).get_movie_data()
-        results = []
-        
-        async with aiohttp.ClientSession(headers = {'encoding':'utf-8'}) as session:
-                tasks = [
-                    self.get_urls(session = session, url = x['movie_url'], uuid = x['uuid'], movie_name = x['movie_name'], movie_url = x['movie_url'], logo = x['logo'])
-                    for x in movies_data
-                ]
-                html_pages = await asyncio.gather(*tasks)
-                results.append(html_pages)
+        try:
+            movies_data = await GetMovieData(self._category).get_movie_data()
+            results = []
+            
+            async with aiohttp.ClientSession(headers = {'encoding':'utf-8'}) as session:
+                    tasks = [
+                        self.get_urls(session = session, url = x['movie_url'], uuid = x['uuid'], movie_name = x['movie_name'], movie_url = x['movie_url'], logo = x['logo'])
+                        for x in movies_data
+                    ]
+                    html_pages = await asyncio.gather(*tasks)
+                    results.append(html_pages)
+                    
+        except Exception as e:
+            return f'Erro: {e}'
 
         # Salvando dados brutos
         # path = os.path.join(os.getcwd(), 'data', 'filmes') if os.getcwd().__contains__('app') else os.path.join(os.getcwd(), 'app', 'data', 'filmes')

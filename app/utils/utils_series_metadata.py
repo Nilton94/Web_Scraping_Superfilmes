@@ -162,25 +162,28 @@ class GetSeriesMetadata:
                 list of dictionaries with html content for every movie
         '''
 
-        movies_data = await GetSeriesData(self._category).get_series_data()
-        results = []
-        async with aiohttp.ClientSession(headers = {'encoding':'utf-8'}) as session:
-                tasks = [self.get_urls(session = session, url = x['url'], uuid = x['uuid'], series_name = x['name'], series_url = x['url'], logo = x['logo'], duracao = x['duracao']) for x in movies_data]
-                html_pages = await asyncio.gather(*tasks)
-                results.append(html_pages)
+        try:
+            movies_data = await GetSeriesData(self._category).get_series_data()
+            results = []
+            async with aiohttp.ClientSession(headers = {'encoding':'utf-8'}) as session:
+                    tasks = [self.get_urls(session = session, url = x['url'], uuid = x['uuid'], series_name = x['name'], series_url = x['url'], logo = x['logo'], duracao = x['duracao']) for x in movies_data]
+                    html_pages = await asyncio.gather(*tasks)
+                    results.append(html_pages)
 
-        # Salvando dados brutos
-        # path = os.path.join(os.getcwd(), 'data', 'series') if os.getcwd().__contains__('app') else os.path.join(os.getcwd(), 'app', 'data', 'series')
+            # Salvando dados brutos
+            # path = os.path.join(os.getcwd(), 'data', 'series') if os.getcwd().__contains__('app') else os.path.join(os.getcwd(), 'app', 'data', 'series')
 
-        # pq.write_to_dataset(
-        #     table = pa.Table.from_pandas(pd.DataFrame(results[0])),
-        #     root_path = path,
-        #     existing_data_behavior = 'delete_matching',
-        #     basename_template = f"{datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).year}_series" + "{i}.parquet",
-        #     use_legacy_dataset = False
-        # )
+            # pq.write_to_dataset(
+            #     table = pa.Table.from_pandas(pd.DataFrame(results[0])),
+            #     root_path = path,
+            #     existing_data_behavior = 'delete_matching',
+            #     basename_template = f"{datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).year}_series" + "{i}.parquet",
+            #     use_legacy_dataset = False
+            # )
 
-        return results
+            return results
+        except Exception as e:
+            return f'Erro: {e}'
     
     @st.cache_data(ttl = 86400)
     def get_urls_sync(self, url, duracao, uuid, series_name, series_url, logo):

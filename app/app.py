@@ -4,6 +4,8 @@ from utils.utils_movies import GetMovieData
 from utils.utils_series import GetSeriesData
 import asyncio
 import datetime, pytz
+import requests
+from bs4 import BeautifulSoup
 import pandas as pd
 import streamlit as st 
 from utils.utils_streamlit import get_config, get_widgets, get_data, get_filters, apply_filters, get_final_dataframe, get_duration
@@ -40,16 +42,51 @@ get_widgets()
 # if st.session_state.limpar_cache:
 #     st.cache_data.clear()
 
+
+
+# TESTES 
+def get_urls_sync(url):
+        
+        series = []
+        r = requests.get(url)
+        soup = BeautifulSoup(r.text, 'html.parser')
+
+        for item in soup.select('.zmovo-video-item-box'):
+            name = item.select_one('.zmovo-v-box-content a.glow').text.strip()
+            url = item.select_one('.zmovo-v-box-content a.glow')['href']
+            genre = item.select_one('.zmovo-v-tag span').text.strip()
+            logo = item.select_one('img')['data-src']
+            duracao = item.find('div', 'movie-time').text
+            
+
+            series.append(
+                {
+                    'uuid': str((name.lower())),
+                    'name': name, 
+                    'url': url, 
+                    'genre': genre, 
+                    'duracao': duracao,
+                    'logo': logo,
+                    'data_extracao': str(datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).replace(microsecond=0).strftime('%Y-%m-%d %H:%M:%S')),
+                    'ano_extracao': str(datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).replace(microsecond=0).year),
+                    'mes_extracao': str(datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).replace(microsecond=0).month),
+                    'dia_extracao': str(datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).replace(microsecond=0).day)
+                }
+            )
+        
+        return series, r.status_code
+
 if st.session_state.atualizar:
 
     if st.session_state.categorias == 'series':
         # dados = asyncio.run(GetSeriesMetadata(st.session_state.categorias).get_series_metadata())
         # dados = GetSeriesData(st.session_state.categorias).get_series_data_sync()
-        dados = GetSeriesData(st.session_state.categorias).get_urls_sync(url = 'https://superfilmes.green/series/1')
+        dados, status = get_urls_sync(url = 'https://superfilmes.green/series/1')
         # dados = await GetSeriesMetadata(st.session_state.categorias).get_series_metadata()
     else:
         # dados = asyncio.run(GetMovieMetadata(st.session_state.categorias).get_movie_metadata())
         dados = GetMovieData(st.session_state.categorias).get_movie_data_sync()
         # dados = await GetMovieMetadata(st.session_state.categorias).get_movie_metadata()
 
+    st.write(status)
     st.dataframe(dados)

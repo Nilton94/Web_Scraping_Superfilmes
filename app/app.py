@@ -44,7 +44,8 @@ if st.session_state.atualizar:
 
     if st.session_state.categorias == 'series':
         # dados = asyncio.run(GetSeriesMetadata(st.session_state.categorias).get_series_metadata())
-        dados = GetSeriesData(st.session_state.categorias).get_series_data_sync()
+        # dados = GetSeriesData(st.session_state.categorias).get_series_data_sync()
+        dados = GetSeriesData(st.session_state.categorias).get_urls_sync(url = 'https://superfilmes.green/series/1')
         # dados = await GetSeriesMetadata(st.session_state.categorias).get_series_metadata()
     else:
         # dados = asyncio.run(GetMovieMetadata(st.session_state.categorias).get_movie_metadata())

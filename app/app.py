@@ -74,14 +74,14 @@ def get_urls_sync(url):
                 }
             )
         
-        return series, r.status_code
+        return series, r.status_code, r.reason, r.text
 
 if st.session_state.atualizar:
 
     if st.session_state.categorias == 'series':
         # dados = asyncio.run(GetSeriesMetadata(st.session_state.categorias).get_series_metadata())
         # dados = GetSeriesData(st.session_state.categorias).get_series_data_sync()
-        dados, status = get_urls_sync(url = 'https://superfilmes.green/series/1')
+        dados, status, reason, text = get_urls_sync(url = 'https://superfilmes.green/series/1')
         # dados = await GetSeriesMetadata(st.session_state.categorias).get_series_metadata()
     else:
         # dados = asyncio.run(GetMovieMetadata(st.session_state.categorias).get_movie_metadata())
@@ -89,4 +89,6 @@ if st.session_state.atualizar:
         # dados = await GetMovieMetadata(st.session_state.categorias).get_movie_metadata()
 
     st.write(status)
+    st.write(reason)
+    st.write(text)
     st.dataframe(dados)

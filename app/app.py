@@ -1,5 +1,7 @@
 from utils.utils_movies_metadata import GetMovieMetadata
 from utils.utils_series_metadata import GetSeriesMetadata
+from utils.utils_movies import GetMovieData
+from utils.utils_series import GetSeriesData
 import asyncio
 import datetime, pytz
 import pandas as pd
@@ -39,27 +41,14 @@ get_widgets()
 #     st.cache_data.clear()
 
 if st.session_state.atualizar:
-    # DADOS
-    inicio = datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).replace(microsecond = 0, tzinfo = None)
-    st.session_state['lista_inicio'].insert(0, inicio) 
 
     if st.session_state.categorias == 'series':
         # dados = asyncio.run(GetSeriesMetadata(st.session_state.categorias).get_series_metadata())
-        dados = GetSeriesMetadata(st.session_state.categorias).get_series_metadata_sync()
+        dados = GetSeriesData(st.session_state.categorias).get_series_data_sync()
         # dados = await GetSeriesMetadata(st.session_state.categorias).get_series_metadata()
     else:
         # dados = asyncio.run(GetMovieMetadata(st.session_state.categorias).get_movie_metadata())
-        dados = GetMovieMetadata(st.session_state.categorias).get_movie_metadata_sync()
+        dados = GetMovieData(st.session_state.categorias).get_movie_data_sync()
         # dados = await GetMovieMetadata(st.session_state.categorias).get_movie_metadata()
 
-    fim = datetime.datetime.now(tz = pytz.timezone('America/Sao_Paulo')).replace(microsecond = 0, tzinfo = None)
-    st.session_state['lista_fim'].insert(0, fim) 
-
-    duracao = fim - inicio
-    st.session_state['lista_duracao'].insert(0, duracao)
-
-    # df_base = pd.DataFrame(dados[0])
-    df_base = pd.DataFrame(dados)
-    st.session_state['dataframe_base'].insert(0, df_base.to_dict(orient = 'list'))
-
-dados
+    st.dataframe(dados)

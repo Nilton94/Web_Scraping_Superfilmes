@@ -8,6 +8,7 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 import streamlit as st 
+import cloudscraper
 from utils.utils_streamlit import get_config, get_widgets, get_data, get_filters, apply_filters, get_final_dataframe, get_duration
 
 # CONFIGS
@@ -48,13 +49,14 @@ get_widgets()
 def get_urls_sync(url):
         
         series = []
+        scraper = cloudscraper.create_scraper()
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
             'Accept-Language': 'en-US,en;q=0.9',
             'Accept-Encoding': 'gzip, deflate, br',
             'Connection': 'keep-alive'
         }
-        r = requests.get(url, headers = headers)
+        r = scraper.get(url, headers = headers)
         soup = BeautifulSoup(r.text, 'html.parser')
 
         for item in soup.select('.zmovo-video-item-box'):

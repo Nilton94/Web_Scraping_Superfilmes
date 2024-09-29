@@ -34,3 +34,6 @@ try:
         st.write('Selecione uma categoria!')
 except:
     pass
+
+if st.session_state.limpar_cache:
+    st.cache_data.clear()

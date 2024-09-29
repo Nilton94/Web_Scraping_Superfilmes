@@ -89,7 +89,7 @@ class GetMovieData:
             print(f'Erro: {e}')
     
 
-    @st.cache_data(ttl = 86400)
+    @st.cache_data(ttl = 7200)
     def get_urls_sync(self, url):
         
         movies = []
@@ -124,7 +124,7 @@ class GetMovieData:
         
         return movies
     
-    @st.cache_data(ttl = 86400)
+    @st.cache_data(ttl = 7200)
     def get_movie_data_sync(self):
 
         try:

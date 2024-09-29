@@ -92,3 +92,7 @@ if st.session_state.atualizar:
     st.write(reason)
     st.write(text)
     st.dataframe(dados)
+
+
+response = requests.get('https://httpbin.org/ip')
+st.write(response.json())

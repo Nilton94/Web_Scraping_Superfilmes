@@ -204,7 +204,7 @@ class GetMovieMetadata:
         
         return results
     
-    @st.cache_data(ttl = 86400)
+    @st.cache_data(ttl = 7200)
     def get_urls_sync(self, url, uuid, movie_name, movie_url, logo):
 
         r = requests.get(url)
@@ -343,7 +343,7 @@ class GetMovieMetadata:
         
         return metadata
     
-    @st.cache_data(ttl = 86400)
+    @st.cache_data(ttl = 7200)
     def get_movie_metadata_sync(self):
 
         movies_data = GetMovieData(self._category).get_movie_data_sync()

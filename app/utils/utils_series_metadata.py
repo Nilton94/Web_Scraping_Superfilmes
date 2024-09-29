@@ -185,7 +185,7 @@ class GetSeriesMetadata:
         except Exception as e:
             return f'Erro: {e}'
     
-    @st.cache_data(ttl = 86400)
+    @st.cache_data(ttl = 7200)
     def get_urls_sync(self, url, duracao, uuid, series_name, series_url, logo):
 
         try:
@@ -313,7 +313,7 @@ class GetSeriesMetadata:
         except:
             pass
     
-    @st.cache_data(ttl = 86400)
+    @st.cache_data(ttl = 7200)
     def get_series_metadata_sync(self):
 
         series_data = GetSeriesData(self._category).get_series_data_sync()
